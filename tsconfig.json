@@ -8,7 +8,9 @@
     "moduleResolution": "Bundler",
     "types": ["bun-types"],
     "paths": {
-      "@domain/*": ["./src/domain/*"]
+      "@domain/*": ["./src/domain/*"],
+      "@infrastructure/*": ["./src/infrastructure/*"],
+      "@application/*": ["./src/application/*"]
     },
     "ignoreDeprecations": "6.0"
   }
