@@ -3,9 +3,13 @@
     "strict": true,
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "baseUrl": "./src",
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["bun-types"],
     "paths": {
-      "@domain/*": ["domain/*"]
-    }
+      "@domain/*": ["./src/domain/*"]
+    },
+    "ignoreDeprecations": "6.0"
   }
 }
