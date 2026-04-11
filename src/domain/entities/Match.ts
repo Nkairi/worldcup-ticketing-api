@@ -1,7 +1,7 @@
-import { Stadium } from "./Stadium"
-import { Team } from "./Team"
-import { MatchStage } from "../enums/MatchStage"
-import { MatchStatus } from "../enums/MatchStatus"
+import { Stadium } from "@domain/entities/Stadium"
+import { Team } from "@domain/entities/Team"
+import { MatchStage } from "@domain/enums/MatchStage"
+import { MatchStatus } from "@domain/enums/MatchStatus"
 
 export class Match {
   constructor(
@@ -11,6 +11,7 @@ export class Match {
     public awayTeam: Team,
     public stage: MatchStage,
     public status: MatchStatus,
+    public date: Date,
     public homeScore: number = 0,
     public awayScore: number = 0
   ) {

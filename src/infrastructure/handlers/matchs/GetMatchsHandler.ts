@@ -1,10 +1,12 @@
 import { Context } from "hono"
+import { HTTPException } from "hono/http-exception"
 import { matchs } from "@infrastructure/mock/matchs"
 
 export class GetMatchsHandler {
   async handle(c: Context) {
     const teamCode = c.req.query("team[code]")
     const stage = c.req.query("stage")
+    const date = c.req.query("date")
 
     let result = [...matchs]
 
@@ -12,13 +14,7 @@ export class GetMatchsHandler {
       const normalizedCode = teamCode.toUpperCase()
 
       if (!/^[A-Z]{3}$/.test(normalizedCode)) {
-        return c.json(
-          {
-            success: false,
-            message: "Invalid FIFA code"
-          },
-          400
-        )
+        throw new HTTPException(400, { message: "Invalid FIFA code" })
       }
 
       result = result.filter(
@@ -35,20 +31,25 @@ export class GetMatchsHandler {
         "round_of_16",
         "quarter_finals",
         "semi_finals",
+        "third_place",
         "final"
       ]
 
       if (!allowedStages.includes(stage)) {
-        return c.json(
-          {
-            success: false,
-            message: "Invalid stage"
-          },
-          400
-        )
+        throw new HTTPException(400, { message: "Invalid stage" })
       }
 
       result = result.filter((match) => match.stage === stage)
+    }
+
+    if (date) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        throw new HTTPException(400, { message: "Invalid date format" })
+      }
+
+      result = result.filter(
+        (match) => match.date.toISOString().split("T")[0] === date
+      )
     }
 
     return c.json({

@@ -12,6 +12,7 @@ export const matchs = [
     teams[1],
     MatchStage.GROUP,
     MatchStatus.SCHEDULED,
+    new Date("2026-06-15"),
     0,
     0
   ),
@@ -22,6 +23,7 @@ export const matchs = [
     teams[3],
     MatchStage.GROUP,
     MatchStatus.LIVE,
+    new Date("2026-06-16"),
     1,
     0
   ),
@@ -32,6 +34,7 @@ export const matchs = [
     teams[5],
     MatchStage.GROUP,
     MatchStatus.FINISHED,
+    new Date("2026-06-17"),
     2,
     2
   )

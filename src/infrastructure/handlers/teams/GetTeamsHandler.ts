@@ -1,4 +1,5 @@
 import { Context } from "hono"
+import { HTTPException } from "hono/http-exception"
 import { teams } from "@infrastructure/mock/teams"
 
 export class GetTeamsHandler {
@@ -19,13 +20,7 @@ export class GetTeamsHandler {
     } else if (sort === "-name") {
       result.sort((a, b) => b.name.localeCompare(a.name))
     } else {
-      return c.json(
-        {
-          success: false,
-          message: "Invalid sort value"
-        },
-        400
-      )
+      throw new HTTPException(400, { message: "Invalid sort value" })
     }
 
     return c.json({
