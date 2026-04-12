@@ -1,21 +1,24 @@
 import { Context } from "hono"
-import { countries } from "@infrastructure/mock/countries"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Country } from "@domain/entities/Country"
 
 export class GetCountriesHandler {
   async handle(c: Context) {
     const name = c.req.query("name")
 
-    let result = [...countries]
+    const countryRepository = AppDataSource.getRepository(Country)
+
+    let countries = await countryRepository.find()
 
     if (name) {
-      result = result.filter((country) =>
+      countries = countries.filter((country) =>
         country.name.toLowerCase().includes(name.toLowerCase())
       )
     }
 
     return c.json({
       success: true,
-      data: result
+      data: countries
     })
   }
 }

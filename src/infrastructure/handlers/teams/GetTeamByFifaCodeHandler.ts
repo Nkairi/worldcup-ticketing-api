@@ -1,6 +1,7 @@
 import { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
-import { teams } from "@infrastructure/mock/teams"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Team } from "@domain/entities/Team"
 
 export class GetTeamByFifaCodeHandler {
   async handle(c: Context) {
@@ -10,7 +11,9 @@ export class GetTeamByFifaCodeHandler {
       throw new HTTPException(400, { message: "Invalid FIFA code" })
     }
 
-    const team = teams.find((t) => t.fifaCode === fifaCode)
+    const teamRepository = AppDataSource.getRepository(Team)
+
+    const team = await teamRepository.findOneBy({ fifaCode })
 
     if (!team) {
       throw new HTTPException(404, { message: "Team not found" })

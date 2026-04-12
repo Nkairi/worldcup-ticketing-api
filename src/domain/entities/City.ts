@@ -1,12 +1,19 @@
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
 import { Country } from "./Country"
 
+@Entity()
 export class City {
-  constructor(
-    public name: string,
-    public country: Country
-  ) {
-    if (!name) {
-      throw new Error("City name is required")
-    }
+  @PrimaryGeneratedColumn()
+  id!: number
+
+  @Column()
+  name: string
+
+  @ManyToOne(() => Country, { eager: true })
+  country: Country
+
+  constructor(name: string, country: Country) {
+    this.name = name
+    this.country = country
   }
 }

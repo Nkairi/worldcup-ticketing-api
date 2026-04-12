@@ -1,6 +1,7 @@
 import { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
-import { matchs } from "@infrastructure/mock/matchs"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Match } from "@domain/entities/Match"
 
 export class GetMatchsHandler {
   async handle(c: Context) {
@@ -8,7 +9,8 @@ export class GetMatchsHandler {
     const stage = c.req.query("stage")
     const date = c.req.query("date")
 
-    let result = [...matchs]
+    const matchRepository = AppDataSource.getRepository(Match)
+    let matchs = await matchRepository.find()
 
     if (teamCode) {
       const normalizedCode = teamCode.toUpperCase()
@@ -17,7 +19,7 @@ export class GetMatchsHandler {
         throw new HTTPException(400, { message: "Invalid FIFA code" })
       }
 
-      result = result.filter(
+      matchs = matchs.filter(
         (match) =>
           match.homeTeam.fifaCode === normalizedCode ||
           match.awayTeam.fifaCode === normalizedCode
@@ -39,7 +41,7 @@ export class GetMatchsHandler {
         throw new HTTPException(400, { message: "Invalid stage" })
       }
 
-      result = result.filter((match) => match.stage === stage)
+      matchs = matchs.filter((match) => match.stage === stage)
     }
 
     if (date) {
@@ -47,14 +49,14 @@ export class GetMatchsHandler {
         throw new HTTPException(400, { message: "Invalid date format" })
       }
 
-      result = result.filter(
+      matchs = matchs.filter(
         (match) => match.date.toISOString().split("T")[0] === date
       )
     }
 
     return c.json({
       success: true,
-      data: result
+      data: matchs
     })
   }
 }

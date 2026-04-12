@@ -1,6 +1,7 @@
 import { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
-import { matchs } from "@infrastructure/mock/matchs"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Match } from "@domain/entities/Match"
 
 export class GetMatchsByStageHandler {
   async handle(c: Context) {
@@ -19,6 +20,9 @@ export class GetMatchsByStageHandler {
     if (!allowedStages.includes(stage)) {
       throw new HTTPException(400, { message: "Invalid stage" })
     }
+
+    const matchRepository = AppDataSource.getRepository(Match)
+    const matchs = await matchRepository.find()
 
     const filteredMatchs = matchs.filter((match) => match.stage === stage)
 

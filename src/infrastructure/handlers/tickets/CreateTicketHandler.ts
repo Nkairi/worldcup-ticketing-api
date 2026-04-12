@@ -1,8 +1,8 @@
 import { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
 import { Ticket } from "@domain/entities/Ticket"
-import { matchs } from "@infrastructure/mock/matchs"
-import { tickets } from "@infrastructure/mock/tickets"
+import { Match } from "@domain/entities/Match"
 import { CreateTicketSchema } from "./CreateTicketSchema"
 
 export class CreateTicketHandler {
@@ -17,13 +17,18 @@ export class CreateTicketHandler {
 
     const { matchId, seat, customer } = result.data
 
-    const match = matchs.find((m) => m.id === matchId)
+    const matchRepository = AppDataSource.getRepository(Match)
+    const ticketRepository = AppDataSource.getRepository(Ticket)
+
+    const match = await matchRepository.findOneBy({ id: matchId })
 
     if (!match) {
       throw new HTTPException(404, { message: "Match not found" })
     }
 
-    const seatAlreadyTaken = tickets.find(
+    const existingTickets = await ticketRepository.find()
+
+    const seatAlreadyTaken = existingTickets.find(
       (ticket) => ticket.match.id === matchId && ticket.seat === seat
     )
 
@@ -32,13 +37,13 @@ export class CreateTicketHandler {
     }
 
     const newTicket = new Ticket(
-      tickets.length + 1,
+      existingTickets.length + 1,
       match,
       seat,
       customer
     )
 
-    tickets.push(newTicket)
+    await ticketRepository.save(newTicket)
 
     return c.json(
       {

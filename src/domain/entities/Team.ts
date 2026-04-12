@@ -1,15 +1,18 @@
-export class Team {
-  constructor(
-    public name: string,
-    public fifaCode: string
-  ) {
-    if (!name) {
-      throw new Error("Team name is required")
-    }
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm"
 
-    // ex : FRA, BRA, USA
-    if (!/^[A-Z]{3}$/.test(fifaCode)) {
-      throw new Error("fifaCode must be 3 uppercase letters (ex: FRA)")
-    }
+@Entity()
+export class Team {
+  @PrimaryGeneratedColumn()
+  id!: number
+
+  @Column()
+  name: string
+
+  @Column({ unique: true })
+  fifaCode: string
+
+  constructor(name: string, fifaCode: string) {
+    this.name = name
+    this.fifaCode = fifaCode
   }
 }

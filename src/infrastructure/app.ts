@@ -7,6 +7,7 @@ import { citiesRouter } from "@infrastructure/routes/cities"
 import { countriesRouter } from "@infrastructure/routes/countries"
 import { stadiumsRouter } from "@infrastructure/routes/stadiums"
 import { ticketsRouter } from "@infrastructure/routes/tickets"
+import { AppDataSource } from "./database/data-source"
 
 export const app = new Hono()
 
@@ -39,6 +40,14 @@ app.notFound((c) => {
     404
   )
 })
+
+AppDataSource.initialize()
+  .then(() => {
+    console.log("Database connected")
+  })
+  .catch((error) => {
+    console.error("Database error:", error)
+  })
 
 app.route("/", homeRouter)
 app.route("/matchs", matchsRouter)

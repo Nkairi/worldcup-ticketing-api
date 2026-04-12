@@ -1,20 +1,18 @@
 import { Context } from "hono"
-import { matchs } from "@infrastructure/mock/matchs"
+import { HTTPException } from "hono/http-exception"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Match } from "@domain/entities/Match"
 
 export class GetMatchByIdHandler {
   async handle(c: Context) {
     const id = Number(c.req.param("id"))
 
-    const match = matchs.find((m) => m.id === id)
+    const matchRepository = AppDataSource.getRepository(Match)
+
+    const match = await matchRepository.findOneBy({ id })
 
     if (!match) {
-      return c.json(
-        {
-          success: false,
-          message: "Match not found"
-        },
-        404
-      )
+      throw new HTTPException(404, { message: "Match not found" })
     }
 
     return c.json({

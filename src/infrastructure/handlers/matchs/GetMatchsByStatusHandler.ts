@@ -1,6 +1,7 @@
 import { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
-import { matchs } from "@infrastructure/mock/matchs"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Match } from "@domain/entities/Match"
 
 export class GetMatchsByStatusHandler {
   async handle(c: Context) {
@@ -16,6 +17,9 @@ export class GetMatchsByStatusHandler {
     if (!allowedStatus.includes(status)) {
       throw new HTTPException(400, { message: "Invalid status" })
     }
+
+    const matchRepository = AppDataSource.getRepository(Match)
+    const matchs = await matchRepository.find()
 
     const filteredMatchs = matchs.filter((match) => match.status === status)
 

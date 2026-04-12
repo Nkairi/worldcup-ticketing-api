@@ -1,9 +1,18 @@
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm"
+
+@Entity()
 export class Country {
-  constructor(
-    public name: string
-  ) {
-    if (!name) {
-      throw new Error("Country name is required")
-    }
+  @PrimaryGeneratedColumn()
+  id!: number
+
+  @Column()
+  name!: string
+
+  @Column({ unique: true })
+  code!: string
+
+  constructor(name?: string, code?: string) {
+    this.name = name ?? ""
+    this.code = code ?? ""
   }
 }
