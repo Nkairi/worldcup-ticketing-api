@@ -1,24 +1,22 @@
 import { Context } from "hono"
-import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { CityService } from "@application/services/CityService"
 import { City } from "@domain/entities/City"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Repository } from "typeorm"
+
+const cityRepository: Repository<City> = AppDataSource.getRepository(City)
+const cityService: CityService = new CityService(cityRepository)
 
 export class GetCitiesHandler {
   async handle(c: Context) {
     const name = c.req.query("name")
+    const country = c.req.query("country")
 
-    const cityRepository = AppDataSource.getRepository(City)
-
-    let cities = await cityRepository.find()
-
-    if (name) {
-      cities = cities.filter((city) =>
-        city.name.toLowerCase().includes(name.toLowerCase())
-      )
-    }
+    const data = await cityService.findAll({ name, country })
 
     return c.json({
       success: true,
-      data: cities
+      data
     })
   }
 }

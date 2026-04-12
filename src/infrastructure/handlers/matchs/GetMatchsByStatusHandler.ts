@@ -1,31 +1,31 @@
 import { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
-import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { MatchService } from "@application/services/MatchService"
 import { Match } from "@domain/entities/Match"
+import { ValidationError } from "@domain/errors/ValidationError"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Repository } from "typeorm"
+
+const matchRepository: Repository<Match> = AppDataSource.getRepository(Match)
+const matchService: MatchService = new MatchService(matchRepository)
 
 export class GetMatchsByStatusHandler {
   async handle(c: Context) {
-    const status = c.req.param("status")
+    try {
+      const { status } = c.req.param()
 
-    const allowedStatus = [
-      "scheduled",
-      "live",
-      "finished",
-      "cancelled"
-    ]
+      const data = await matchService.findByStatus(status)
 
-    if (!allowedStatus.includes(status)) {
-      throw new HTTPException(400, { message: "Invalid status" })
+      return c.json({
+        success: true,
+        data
+      })
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        throw new HTTPException(400, { message: e.message })
+      }
+
+      throw e
     }
-
-    const matchRepository = AppDataSource.getRepository(Match)
-    const matchs = await matchRepository.find()
-
-    const filteredMatchs = matchs.filter((match) => match.status === status)
-
-    return c.json({
-      success: true,
-      data: filteredMatchs
-    })
   }
 }

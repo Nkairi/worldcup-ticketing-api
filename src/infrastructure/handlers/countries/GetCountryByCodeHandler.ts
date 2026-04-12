@@ -1,22 +1,31 @@
 import { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
-import { countries } from "@infrastructure/mock/countries"
+import { CountryService } from "@application/services/CountryService"
+import { Country } from "@domain/entities/Country"
+import { NotFoundError } from "@domain/errors/NotFoundError"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Repository } from "typeorm"
+
+const countryRepository: Repository<Country> = AppDataSource.getRepository(Country)
+const countryService: CountryService = new CountryService(countryRepository)
 
 export class GetCountryByCodeHandler {
   async handle(c: Context) {
-    const code = c.req.param("code").toLowerCase()
+    try {
+      const { code } = c.req.param()
 
-    const country = countries.find(
-      (country) => country.name.toLowerCase().startsWith(code)
-    )
+      const data = await countryService.findByCode(code)
 
-    if (!country) {
-      throw new HTTPException(404, { message: "Country not found" })
+      return c.json({
+        success: true,
+        data
+      })
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        throw new HTTPException(404, { message: e.message })
+      }
+
+      throw e
     }
-
-    return c.json({
-      success: true,
-      data: country
-    })
   }
 }

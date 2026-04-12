@@ -1,23 +1,31 @@
 import { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
-import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { MatchService } from "@application/services/MatchService"
 import { Match } from "@domain/entities/Match"
+import { NotFoundError } from "@domain/errors/NotFoundError"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Repository } from "typeorm"
+
+const matchRepository: Repository<Match> = AppDataSource.getRepository(Match)
+const matchService: MatchService = new MatchService(matchRepository)
 
 export class GetMatchByIdHandler {
   async handle(c: Context) {
-    const id = Number(c.req.param("id"))
+    try {
+      const id = Number(c.req.param("id"))
 
-    const matchRepository = AppDataSource.getRepository(Match)
+      const data = await matchService.findById(id)
 
-    const match = await matchRepository.findOneBy({ id })
+      return c.json({
+        success: true,
+        data
+      })
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        throw new HTTPException(404, { message: e.message })
+      }
 
-    if (!match) {
-      throw new HTTPException(404, { message: "Match not found" })
+      throw e
     }
-
-    return c.json({
-      success: true,
-      data: match
-    })
   }
 }

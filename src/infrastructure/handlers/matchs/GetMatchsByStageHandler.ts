@@ -1,34 +1,31 @@
 import { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
-import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { MatchService } from "@application/services/MatchService"
 import { Match } from "@domain/entities/Match"
+import { ValidationError } from "@domain/errors/ValidationError"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Repository } from "typeorm"
+
+const matchRepository: Repository<Match> = AppDataSource.getRepository(Match)
+const matchService: MatchService = new MatchService(matchRepository)
 
 export class GetMatchsByStageHandler {
   async handle(c: Context) {
-    const stage = c.req.param("stage")
+    try {
+      const { stage } = c.req.param()
 
-    const allowedStages = [
-      "group",
-      "round_of_32",
-      "round_of_16",
-      "quarter_finals",
-      "semi_finals",
-      "third_place",
-      "final"
-    ]
+      const data = await matchService.findByStage(stage)
 
-    if (!allowedStages.includes(stage)) {
-      throw new HTTPException(400, { message: "Invalid stage" })
+      return c.json({
+        success: true,
+        data
+      })
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        throw new HTTPException(400, { message: e.message })
+      }
+
+      throw e
     }
-
-    const matchRepository = AppDataSource.getRepository(Match)
-    const matchs = await matchRepository.find()
-
-    const filteredMatchs = matchs.filter((match) => match.stage === stage)
-
-    return c.json({
-      success: true,
-      data: filteredMatchs
-    })
   }
 }

@@ -1,26 +1,31 @@
 import { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
-import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { StadiumService } from "@application/services/StadiumService"
 import { Stadium } from "@domain/entities/Stadium"
+import { NotFoundError } from "@domain/errors/NotFoundError"
+import { AppDataSource } from "@infrastructure/database/AppDataSource"
+import { Repository } from "typeorm"
+
+const stadiumRepository: Repository<Stadium> = AppDataSource.getRepository(Stadium)
+const stadiumService: StadiumService = new StadiumService(stadiumRepository)
 
 export class GetStadiumByNameHandler {
   async handle(c: Context) {
-    const name = c.req.param("name").toLowerCase()
+    try {
+      const { name } = c.req.param()
 
-    const stadiumRepository = AppDataSource.getRepository(Stadium)
+      const data = await stadiumService.findByName(name)
 
-    const stadiums = await stadiumRepository.find()
-    const stadium = stadiums.find(
-      (stadium) => stadium.name.toLowerCase() === name
-    )
+      return c.json({
+        success: true,
+        data
+      })
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        throw new HTTPException(404, { message: e.message })
+      }
 
-    if (!stadium) {
-      throw new HTTPException(404, { message: "Stadium not found" })
+      throw e
     }
-
-    return c.json({
-      success: true,
-      data: stadium
-    })
   }
 }
